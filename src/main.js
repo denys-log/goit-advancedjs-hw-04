@@ -11,7 +11,7 @@ const loader = document.querySelector('.loader-wrapper');
 
 let prevSearchValue = '';
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
 
   const formData = new FormData(event.target);
@@ -25,27 +25,25 @@ form.addEventListener('submit', event => {
 
     prevSearchValue = search;
 
-    getImages(search)
-      .then(posts => {
-        if (posts.total === 0) {
-          iziToast.error({
-            message: `Sorry, there are no images matching your search query. Please try again!`,
-            position: 'topRight',
-          });
-        } else {
-          renderGallery(posts.hits);
-        }
-      })
-      .catch(error => {
+    try {
+      const posts = await getImages(search);
+      if (posts.total === 0) {
         iziToast.error({
-          message: error.message,
+          message: `Sorry, there are no images matching your search query. Please try again!`,
           position: 'topRight',
         });
-      })
-      .finally(() => {
-        loader.classList.add('hidden');
-        input.disabled = false;
-        button.disabled = false;
+      } else {
+        renderGallery(posts.hits);
+      }
+    } catch (error) {
+      iziToast.error({
+        message: error.message,
+        position: 'topRight',
       });
+    }
+
+    loader.classList.add('hidden');
+    input.disabled = false;
+    button.disabled = false;
   }
 });
