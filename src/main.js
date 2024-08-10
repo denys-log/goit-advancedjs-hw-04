@@ -65,21 +65,19 @@ loadMoreBtn.addEventListener('click', async () => {
 
   try {
     const posts = await getImages(prevSearchValue, page + 1);
-
-    page = page + 1;
-
     const totalPages = Math.ceil(posts.totalHits / limit);
+    page = page + 1;
 
     if (posts.hits.length < limit || totalPages <= page) {
       isNotMorePosts = true;
-    }
 
-    if (posts.hits.length === 0) {
       iziToast.info({
         message: `We're sorry, but you've reached the end of search results.`,
         position: 'topRight',
       });
-    } else {
+    }
+
+    if (posts.hits.length) {
       renderGallery(posts.hits);
 
       window.scrollBy({
