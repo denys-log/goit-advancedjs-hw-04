@@ -67,7 +67,7 @@ button:hover {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .gallery {
@@ -114,4 +114,9 @@ button:hover {
 
 .gallery-info span {
   line-height: 24px;
+}
+
+#load-more-button {
+  display: block;
+  margin: 10px auto;
 }

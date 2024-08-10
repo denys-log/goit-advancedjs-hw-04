@@ -8,8 +8,11 @@ const input = document.querySelector('.form-input');
 const button = document.querySelector('.form-btn');
 const gallery = document.querySelector('.gallery');
 const loader = document.querySelector('.loader-wrapper');
+const loadMoreBtn = document.getElementById('load-more-button');
 
 let prevSearchValue = '';
+let page = 1;
+const limit = 15;
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -20,13 +23,15 @@ form.addEventListener('submit', async event => {
   if (search.length > 0 && search !== prevSearchValue) {
     gallery.innerHTML = '';
     loader.classList.remove('hidden');
+    loadMoreBtn.classList.add('hidden');
     input.disabled = true;
     button.disabled = true;
 
     prevSearchValue = search;
+    page = 1;
 
     try {
-      const posts = await getImages(search);
+      const posts = await getImages(search, page);
       if (posts.total === 0) {
         iziToast.error({
           message: `Sorry, there are no images matching your search query. Please try again!`,
@@ -34,6 +39,9 @@ form.addEventListener('submit', async event => {
         });
       } else {
         renderGallery(posts.hits);
+        if (posts.hits.length === limit) {
+          loadMoreBtn.classList.remove('hidden');
+        }
       }
     } catch (error) {
       iziToast.error({
@@ -46,4 +54,53 @@ form.addEventListener('submit', async event => {
     input.disabled = false;
     button.disabled = false;
   }
+});
+
+loadMoreBtn.addEventListener('click', async () => {
+  loader.classList.remove('hidden');
+  loadMoreBtn.classList.add('hidden');
+  input.disabled = true;
+  button.disabled = true;
+  let isNotMorePosts = false;
+
+  try {
+    const posts = await getImages(prevSearchValue, page + 1);
+
+    page = page + 1;
+
+    const totalPages = Math.ceil(posts.totalHits / limit);
+
+    if (posts.hits.length < limit || totalPages <= page) {
+      isNotMorePosts = true;
+    }
+
+    if (posts.hits.length === 0) {
+      iziToast.info({
+        message: `We're sorry, but you've reached the end of search results.`,
+        position: 'topRight',
+      });
+    } else {
+      renderGallery(posts.hits);
+
+      window.scrollBy({
+        top:
+          document.querySelector('.gallery-link').getBoundingClientRect()
+            .height * 2,
+        left: 0,
+        behavior: 'smooth',
+      });
+    }
+  } catch (error) {
+    iziToast.error({
+      message: error.message,
+      position: 'topRight',
+    });
+  }
+
+  if (!isNotMorePosts) {
+    loadMoreBtn.classList.remove('hidden');
+  }
+  loader.classList.add('hidden');
+  input.disabled = false;
+  button.disabled = false;
 });
